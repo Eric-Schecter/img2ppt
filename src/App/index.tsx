@@ -3,6 +3,7 @@ import styles from './index.module.scss';
 import { Presentation, Slide, Image, render } from "react-pptx";
 import { Video } from './video';
 
+
 const isVideo = (name: string) => {
   return name.endsWith('.mp4');
 }
@@ -11,6 +12,7 @@ export const App = () => {
   const [isOver, setIsOver] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const videoRef = useRef(new Video());
+
   const drop = (e: React.DragEvent) => {
     if (isLocked) { return; }
     setIsLocked(true);

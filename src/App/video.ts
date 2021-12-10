@@ -9,9 +9,9 @@ export class Video {
   private frames: { frame: number, data: Uint8ClampedArray }[] = [];
   private imageData: string[] = [];
   private isLoading = false;
-  private step = 10;
-  private diffValue = 10;
-  private size = 8;
+  private step = 3;
+  private diffValue = 5;
+  private size = 256;
   constructor() {
     this.video.muted = true;
     this.targetCanvas.width = this.size;
