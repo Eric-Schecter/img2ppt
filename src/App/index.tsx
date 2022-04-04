@@ -14,13 +14,16 @@ export const App = () => {
   const videoRef = useRef(new Video());
 
   const handle = (files: Promise<string[]>[]) => {
-    const download = (data: string, name: string) => {
-      const a = document.createElement('a');
-      a.href = data;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    const download = (data: any, name: string) => {
+      // const a = document.createElement('a');
+      // a.href = data;
+      // a.download = name;
+
+      // document.body.appendChild(a);
+      // a.click();
+      // document.body.removeChild(a);
+      const a = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+      window.open(URL.createObjectURL(a),'_blank');
     }
 
     Promise.all(files)
@@ -41,8 +44,8 @@ export const App = () => {
               </Slide>)}
           </Presentation>
         )
-          .then(buffer => buffer.toString('base64'))
-          .then(str => 'data:ms-powerpoint;base64,' + str)
+          // .then(buffer => buffer.toString('base64'))
+          // .then(str => 'data:ms-powerpoint;base64,' + str)
           .then(str => download(str, 'file.pptx'))
           .catch(error => console.log(error))
           .finally(() => setIsLocked(false))
