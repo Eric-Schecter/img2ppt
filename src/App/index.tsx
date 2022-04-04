@@ -13,6 +13,41 @@ export const App = () => {
   const [isLocked, setIsLocked] = useState(false);
   const videoRef = useRef(new Video());
 
+  const handle = (files: Promise<string[]>[]) => {
+    const download = (data: string, name: string) => {
+      const a = document.createElement('a');
+      a.href = data;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    Promise.all(files)
+      .then(res => res.reduce((pre, curr) => pre.concat(curr), []))
+      .then(data => {
+        render(
+          <Presentation>
+            {data.map((d, i) =>
+              <Slide key={i}>
+                <Image
+                  style={{
+                    x: "0%", y: "0%", w: "100%", h: "100%",
+                  }}
+                  src={{
+                    kind: "data",
+                    data: d
+                  }} />
+              </Slide>)}
+          </Presentation>
+        )
+          .then(buffer => buffer.toString('base64'))
+          .then(str => 'data:ms-powerpoint;base64,' + str)
+          .then(str => download(str, 'file.pptx'))
+          .catch(error => console.log(error))
+          .finally(() => setIsLocked(false))
+      })
+  }
   const drop = (e: React.DragEvent) => {
     if (isLocked) { return; }
     setIsLocked(true);
@@ -62,39 +97,7 @@ export const App = () => {
           }
         })
 
-      const download = (data: string, name: string) => {
-        const a = document.createElement('a');
-        a.href = data;
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-
-      Promise.all(files)
-        .then(res => res.reduce((pre, curr) => pre.concat(curr), []))
-        .then(data => {
-          render(
-            <Presentation>
-              {data.map((d, i) =>
-                <Slide key={i}>
-                  <Image
-                    style={{
-                      x: "0%", y: "0%", w: "100%", h: "100%"
-                    }}
-                    src={{
-                      kind: "data",
-                      data: d
-                    }} />
-                </Slide>)}
-            </Presentation>
-          )
-            .then(buffer => buffer.toString('base64'))
-            .then(str => 'data:ms-powerpoint;base64,' + str)
-            .then(str => download(str, 'file.pptx'))
-            .catch(error => console.log(error))
-            .finally(() => setIsLocked(false))
-        })
+      handle(files);
 
     }
     setIsOver(false);
@@ -106,12 +109,54 @@ export const App = () => {
     setIsOver(true);
   }
 
+  const ref = useRef<HTMLInputElement>(null);
+  const click = () => {
+    if (isLocked) { return; }
+    ref.current?.click();
+  }
+
+  const changedFiles = () => {
+    if (!ref.current) {
+      return;
+    }
+    const { files: items } = ref.current;
+    if (!items) {
+      return;
+    }
+    setIsLocked(true);
+    const handleFile = (entry: any): Promise<string[]> => {
+      return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(entry);
+        fileReader.onloadend = (() => {
+          resolve([fileReader.result as string])
+        })
+      })
+    }
+    const files = Array.from(items)
+      .map((entry: File): Promise<string[]> => {
+        return handleFile(entry);
+      })
+
+    handle(files);
+  }
+
   return <div
     className={`${styles.root} ${isOver ? styles.over : ''}`}
     onDrop={drop}
     onDragOver={dragover}
+    onClick={click}
     onMouseLeave={() => setIsOver(false)}
   >
-    <div className={styles.text}>拖拽图片到这</div>
+    <div className={styles.text}>点击或拖拽图片到此</div>
+    <input
+      ref={ref}
+      name='input'
+      style={{ display: 'none' }}
+      type='file'
+      multiple
+      accept="image/*"
+      onChange={changedFiles}
+    />
   </div>
 }
