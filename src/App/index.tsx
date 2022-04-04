@@ -8,6 +8,8 @@ const isVideo = (name: string) => {
   return name.endsWith('.mp4');
 }
 
+const isIOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); 
+
 export const App = () => {
   const [isOver, setIsOver] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -23,7 +25,11 @@ export const App = () => {
       // a.click();
       // document.body.removeChild(a);
       const a = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
-      window.open(URL.createObjectURL(a),'_blank');
+      if(isIOS){
+        window.location.href = URL.createObjectURL(a);
+      }else{
+        window.open(URL.createObjectURL(a),'_blank');
+      }
     }
 
     Promise.all(files)
